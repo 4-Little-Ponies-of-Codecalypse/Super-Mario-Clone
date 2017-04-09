@@ -22,6 +22,7 @@ var grd = ctx.createLinearGradient(0,canvas.height-ground,0,canvas.height);
 grd.addColorStop(0,"#86592d");
 grd.addColorStop(1,"#290a0a");  
 
+//generic shape to use as clouds and shrubs
 function drawShape(startX, startY, size, color){
     
   ctx.beginPath();
@@ -137,14 +138,18 @@ function drawBackground(){
   drawHill(1300+x, 2.8);
   drawShrub(40+x, 1/2, false);
   drawShrub(100+x, 1/2.5, false);
-  drawShrub(400+x, 1/2.5, true, '#ff0055');
+  drawShrub(500+x, 1/2.5, true, '#ff0055');
   drawShrub(700+x, 1/2.5, true, 'yellow');
   drawShrub(1100+x, 1/1.8, false);
   drawShrub(1700+x, 1/2.5, true, '#ff0055');
-  drawGround();
+  drawTubes([[100+x, 100]]);
+  drawGround();  
   drawGrass(x);  
   drawClouds([[100+x, 40], [300+x, 70], [330+x, 70], [700+x, 40], [850+x,85], [1200+x, 40], [1400+x, 70], [1430+x, 70], [1900+x, 50]]);
   //requestAnimationFrame(draw);
+  drawPlatforms([[500+x,300]]);
+  //drawCastle(100+x);
+  
 }//end of draw background
 
 window.addEventListener('keydown',this.check,false);
@@ -169,6 +174,124 @@ function scrollRight(){
      x += 3;
   }
 }
+
+//PLATFORMS AND TUBES
+
+//arr - array with platforms coordinates
+function drawPlatforms(arr){
+  for(var a = 0; a < arr.length; a++){
+    drawWall(arr[a][0], arr[a][1]); 
+  } 
+}
+
+//xP, yP - start coordinates
+function drawWall(xP, yP){
+
+  var pWidth = 200;
+  var pHeight = 40;
+  var brickWidth = 40;
+  var brickHeight = 10;
+  var halfBrick = brickWidth / 2;
+
+  ctx.fillStyle = '#ff8000';
+  ctx.strokeStyle='black';  
+   
+  ctx.fillRect(xP, yP, pWidth, pHeight);
+  
+    for(var i = 0; i <= pHeight; i +=brickHeight){
+      
+      ctx.beginPath();
+      ctx.moveTo(xP,yP + i);
+      ctx.lineTo(xP + pWidth, yP + i);
+      ctx.stroke();
+
+      if(i < pHeight){
+        for(var j = 0; j <= pWidth; j += brickWidth){
+          if((i / brickHeight) % 2 == 0){
+            ctx.beginPath();
+            ctx.moveTo(xP + j, yP + i);
+            ctx.lineTo(xP+ j, yP + i + brickHeight);
+            ctx.stroke();
+          }else if(j != pWidth){
+            ctx.beginPath();
+            ctx.moveTo(xP + j + halfBrick, yP + i);
+            ctx.lineTo(xP+ j + halfBrick, yP + i + brickHeight);
+            ctx.stroke();
+          }        
+       }
+      }      
+    }
+
+}//end of draw walls
+
+//arr - array with x coords and tubes heights
+function drawTubes(arr){
+
+  var tubeColor = '#00e600';
+  var tubeShadow = '#009900';
+
+  var grdT = ctx.createLinearGradient(0,canvas.height-ground,0,canvas.height);
+  grdT.addColorStop(0,"#006600");
+  grdT.addColorStop(1,"#000099");
+
+  for(var i = 0; i < arr.length; i++){
+
+    var xT = arr[i][0];
+    var heightTube = arr[i][1];
+
+    ctx.strokeStyle = 'black';  
+
+    ctx.fillStyle = tubeColor;
+    ctx.fillRect(xT, canvas.height - ground - heightTube + 2, 60, heightTube);
+    ctx.strokeRect(xT, canvas.height - ground - heightTube + 2, 60, heightTube);
+    ctx.fillStyle = tubeShadow;
+    ctx.fillRect(xT + 30, canvas.height - ground - heightTube + 3, 25, heightTube - 1);
+    ctx.fillRect(xT + 5, canvas.height - ground - heightTube + 3, 2, heightTube - 1);
+    ctx.fillRect(xT + 10, canvas.height - ground - heightTube + 3, 4, heightTube - 1);
+
+    ctx.fillStyle = tubeColor;
+    ctx.fillRect(xT - 5, canvas.height - ground - heightTube - 30, 70, 30);
+    ctx.strokeRect(xT - 5, canvas.height - ground - heightTube - 30, 70, 30);
+    ctx.fillStyle = tubeShadow;
+    ctx.fillRect(xT + 30, canvas.height - ground - heightTube - 30 + 1, 30, 28);
+    ctx.fillRect(xT, canvas.height - ground - heightTube - 30 + 1, 2, 28);
+    ctx.fillRect(xT + 5, canvas.height - ground - heightTube - 30 + 1, 3, 28);
+  }
+
+}
+
+//CASTLE
+//for platform width 200, platform height 40
+function drawCastle(x){
+
+  var heightBase = 5;
+  var heightTower = 3;
+
+  for(var i = 0; i < heightBase; i++){
+    drawWall(x, canvas.height - ground - 40 - 40 * i);
+    drawWall(x + 200, canvas.height - ground - 40 - 40 * i);
+  }
+
+  for(var j = 0; j < heightTower; j++){
+    drawWall(x + 100, canvas.height - ground - 40 - 40 * heightBase - 40 * j);
+  }
+
+  ctx.fillStyle = '#ff4000';
+  ctx.strokeStyle='black';
+
+  for(var k =0; k < 10; k++){
+    ctx.fillRect(x + k * 41, canvas.height - ground - 40 * heightBase - 30, 30, 30);
+    ctx.strokeRect(x + k * 41, canvas.height - ground - 40 * heightBase - 30, 30, 30);
+  }
+
+  for(var l =0; l < 5; l++){
+    ctx.fillRect(x + 100 + l * 42, canvas.height - ground - 40 * heightBase - 40 * heightTower - 30, 30, 30);
+    ctx.strokeRect(x + 100 + l * 42, canvas.height - ground - 40 * heightBase - 40 * heightTower - 30, 30, 30);
+  }
+
+  
+}
+
 
 //MOVING MARIO
 
