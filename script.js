@@ -2,6 +2,17 @@ var canvas = document.getElementById("mario");
 var ctx = canvas.getContext("2d");
 var x = 0;
 
+//array with x and y coordinates for platforms
+var platforms = [[100+x, 100]];
+//array with x coordinate and heights for pipes
+var pipes = [[100+x, 100]];
+//array with x coords and distances from the top
+var clouds = [[100, 40], [300, 70], [330, 70], [700, 40], [850,85], [1200, 40], [1400, 70], [1430, 70], [1900, 50]];
+//array with x coord, size and berries color (false if no berries)
+var shrubs = [[40, 1/2, false], [100, 1/2.5, false], [500, 1/2.5, '#ff0055'], [700, 1/2.5, 'yellow'], [1100, 1/1.8, false], [1700, 1/2.5, '#ff0055']];
+//array with x coord and size
+var hills = [[55, 2.8], [700, 2], [750, 2.3], [1300, 2.8]];
+
 //BACKGROUND
 
 //ground height
@@ -37,40 +48,54 @@ function drawShape(startX, startY, size, color){
   ctx.fill();
 }//end of draw shape
 
-function drawShrub(w, size, berries, berriesColor){
-  drawShape(w, canvas.height-78, size, 'darkgreen');
-  
+//arr - array with x coords, sizes, berries
+function drawShrubs(arr){
+  var start, size, berries, berriesColor;
+  //d - berries distrubution
   var d = [15, -15, 35, 3, -15, 25, -5, -35, 40, 10, -10, 30, 0];
-  if(berries){
-    for(var i=1; i < 14; i++){
-    ctx.beginPath();
-    ctx.arc(w + 15 * i * size, canvas.height-80 + d[i-1] * size, 2, 0, 2*Math.PI);
-    ctx.fillStyle = berriesColor;
-    ctx.fill();
+  for(var i = 0; i < arr.length; i++){
+    start = arr[i][0] + x;
+    size = arr[i][1];
+    berries = arr[i][2];
+
+    drawShape(start, canvas.height-78, size, 'darkgreen');
+    if(berries != false){
+      for(var j=1; j < 14; j++){
+      ctx.beginPath();
+      ctx.arc(start + 15 * j * size, canvas.height-80 + d[j-1] * size, 2, 0, 2*Math.PI);
+      ctx.fillStyle = berries;
+      ctx.fill();
+     }
+    } 
   }
-  }  
-}//end of draw shrub
+}//end of draw shrubs
 
 //arr - array with clouds coordinates(x and y)
 function drawClouds(arr){ 
   
   for(var i = 0; i< arr.length; i++){
-    drawShape(arr[i][0], arr[i][1], 1/3, 'white');
+    drawShape(arr[i][0] + x, arr[i][1], 1/3, 'white');
   }  
     
-}//end of draw cloud
+}//end of draw clouds
 
-function drawHill(start, size){
-  var h = canvas.height - ground;
-  ctx.beginPath();
-  ctx.moveTo(start, h);
-  ctx.bezierCurveTo(start +50 * size, h -80 * size, start+50 * size, h-80 * size, start +100 * size, h);  
-  ctx.fillStyle = '#194d19';
-  ctx.fill();
-  ctx.strokeStyle = "#003300";
-  ctx.lineWidth = 2;
-  ctx.stroke(); 
-}// end of draw hill
+//arr - array with x coords and sizes
+function drawHills(arr){
+  var start, size;
+  for(var i = 0; i < arr.length; i++){
+    start = arr[i][0] + x;
+    size = arr[i][1]
+    var h = canvas.height - ground;
+    ctx.beginPath();
+    ctx.moveTo(start, h);
+    ctx.bezierCurveTo(start +50 * size, h -80 * size, start+50 * size, h-80 * size, start +100 * size, h);  
+    ctx.fillStyle = '#194d19';
+    ctx.fill();
+    ctx.strokeStyle = "#003300";
+    ctx.lineWidth = 2;
+    ctx.stroke(); 
+  }
+}// end of draw hills
 
 function drawGround(){
   
@@ -132,24 +157,13 @@ function drawGrass(){
 
 function drawBackground(){
   //ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawHill(55+x, 2.8);
-  drawHill(700+x, 2);
-  drawHill(750+x, 2.3);
-  drawHill(1300+x, 2.8);
-  drawShrub(40+x, 1/2, false);
-  drawShrub(100+x, 1/2.5, false);
-  drawShrub(500+x, 1/2.5, true, '#ff0055');
-  drawShrub(700+x, 1/2.5, true, 'yellow');
-  drawShrub(1100+x, 1/1.8, false);
-  drawShrub(1700+x, 1/2.5, true, '#ff0055');
-  drawTubes([[100+x, 100]]);
+  drawHills(hills);
+  drawShrubs(shrubs);
+  drawPipes(pipes);
   drawGround();  
   drawGrass(x);  
-  drawClouds([[100+x, 40], [300+x, 70], [330+x, 70], [700+x, 40], [850+x,85], [1200+x, 40], [1400+x, 70], [1430+x, 70], [1900+x, 50]]);
-  //requestAnimationFrame(draw);
-  drawPlatforms([[500+x,300]]);
-  //drawCastle(100+x);
-  
+  drawClouds(clouds);
+  drawPlatforms(platforms);  
 }//end of draw background
 
 window.addEventListener('keydown',this.check,false);
@@ -175,12 +189,12 @@ function scrollRight(){
   }
 }
 
-//PLATFORMS AND TUBES
+//PLATFORMS AND PIPES
 
 //arr - array with platforms coordinates
 function drawPlatforms(arr){
   for(var a = 0; a < arr.length; a++){
-    drawWall(arr[a][0], arr[a][1]); 
+    drawWall(arr[a][0] + x, arr[a][1]); 
   } 
 }
 
@@ -224,11 +238,11 @@ function drawWall(xP, yP){
 
 }//end of draw walls
 
-//arr - array with x coords and tubes heights
-function drawTubes(arr){
+//arr - array with x coord and pipes heights
+function drawPipes(arr){
 
-  var tubeColor = '#00e600';
-  var tubeShadow = '#009900';
+  var pipeColor = '#00e600';
+  var pipeShadow = '#009900';
 
   var grdT = ctx.createLinearGradient(0,canvas.height-ground,0,canvas.height);
   grdT.addColorStop(0,"#006600");
@@ -236,26 +250,26 @@ function drawTubes(arr){
 
   for(var i = 0; i < arr.length; i++){
 
-    var xT = arr[i][0];
-    var heightTube = arr[i][1];
+    var xPipe = arr[i][0] + x;
+    var pipeHeight = arr[i][1];
 
     ctx.strokeStyle = 'black';  
 
-    ctx.fillStyle = tubeColor;
-    ctx.fillRect(xT, canvas.height - ground - heightTube + 2, 60, heightTube);
-    ctx.strokeRect(xT, canvas.height - ground - heightTube + 2, 60, heightTube);
-    ctx.fillStyle = tubeShadow;
-    ctx.fillRect(xT + 30, canvas.height - ground - heightTube + 3, 25, heightTube - 1);
-    ctx.fillRect(xT + 5, canvas.height - ground - heightTube + 3, 2, heightTube - 1);
-    ctx.fillRect(xT + 10, canvas.height - ground - heightTube + 3, 4, heightTube - 1);
+    ctx.fillStyle = pipeColor;
+    ctx.fillRect(xPipe, canvas.height - ground - pipeHeight + 2, 60, pipeHeight);
+    ctx.strokeRect(xPipe, canvas.height - ground - pipeHeight + 2, 60, pipeHeight);
+    ctx.fillStyle = pipeShadow;
+    ctx.fillRect(xPipe + 30, canvas.height - ground - pipeHeight + 3, 25, pipeHeight - 1);
+    ctx.fillRect(xPipe + 5, canvas.height - ground - pipeHeight + 3, 2, pipeHeight - 1);
+    ctx.fillRect(xPipe + 10, canvas.height - ground - pipeHeight + 3, 4, pipeHeight - 1);
 
-    ctx.fillStyle = tubeColor;
-    ctx.fillRect(xT - 5, canvas.height - ground - heightTube - 30, 70, 30);
-    ctx.strokeRect(xT - 5, canvas.height - ground - heightTube - 30, 70, 30);
-    ctx.fillStyle = tubeShadow;
-    ctx.fillRect(xT + 30, canvas.height - ground - heightTube - 30 + 1, 30, 28);
-    ctx.fillRect(xT, canvas.height - ground - heightTube - 30 + 1, 2, 28);
-    ctx.fillRect(xT + 5, canvas.height - ground - heightTube - 30 + 1, 3, 28);
+    ctx.fillStyle = pipeColor;
+    ctx.fillRect(xPipe - 5, canvas.height - ground - pipeHeight - 30, 70, 30);
+    ctx.strokeRect(xPipe - 5, canvas.height - ground - pipeHeight - 30, 70, 30);
+    ctx.fillStyle = pipeShadow;
+    ctx.fillRect(xPipe + 30, canvas.height - ground - pipeHeight - 30 + 1, 30, 28);
+    ctx.fillRect(xPipe, canvas.height - ground - pipeHeight - 30 + 1, 2, 28);
+    ctx.fillRect(xPipe + 5, canvas.height - ground - pipeHeight - 30 + 1, 3, 28);
   }
 
 }
