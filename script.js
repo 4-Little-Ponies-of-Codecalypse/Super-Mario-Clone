@@ -3,15 +3,62 @@ var ctx = canvas.getContext("2d");
 var x = 0;
 
 //array with x and y coordinates for platforms
-var platforms = [[100+x, 100]];
-//array with x coordinate and heights for pipes
-var pipes = [[100+x, 100]];
-//array with x coords and distances from the top
+var platforms = [[1300, 200], [1600, 150]];
+//array with x and y coordinates for pipes
+var pipes = [[600, 250], [800, 200], [1000, 150]];
+//array with x and y coords
 var clouds = [[100, 40], [300, 70], [330, 70], [700, 40], [850,85], [1200, 40], [1400, 70], [1430, 70], [1900, 50]];
 //array with x coord, size and berries color (false if no berries)
 var shrubs = [[40, 1/2, false], [100, 1/2.5, false], [500, 1/2.5, '#ff0055'], [700, 1/2.5, 'yellow'], [1100, 1/1.8, false], [1700, 1/2.5, '#ff0055']];
 //array with x coord and size
 var hills = [[55, 2.8], [700, 2], [750, 2.3], [1300, 2.8]];
+
+//COLLISION DETECTION
+
+function reactOnCollision(collision){
+  var marioWidth = marioSize;
+  var marioHeight = marioSize;
+  var marioX = x1;
+  var marioY = y;
+  
+  ctx.strokeStyle = 'black'; 
+  
+  if(collision){
+    ctx.strokeStyle = 'red';
+  }
+  ctx.rect(marioX, marioY, marioWidth, marioHeight);
+  ctx.stroke();
+    
+}
+
+//arr - obstacles (platforms, pipes) array
+function detectCollision(arr, width, height){  
+  
+  var start;
+  var h;
+  
+  for(var i = 0; i < arr.length; i++){
+    
+    start = arr[i][0];
+    h = arr[i][1];
+    
+    if(rectsCollide(start, width, h, height)){
+      return true;
+  }
+  }
+   return false;  
+}
+
+//start - obstacle's x coord at the beginning
+//width - obstacle's width
+function rectsCollide(start, width, h, height){
+  return (
+    x < -start + (x1 + marioSize) &&
+    x > -start + (x1 - width) &&
+    y + marioSize > h &&
+    y < h + height
+  );
+}
 
 //BACKGROUND
 
@@ -238,7 +285,7 @@ function drawWall(xP, yP){
 
 }//end of draw walls
 
-//arr - array with x coord and pipes heights
+//arr - array with x and y coords
 function drawPipes(arr){
 
   var pipeColor = '#00e600';
@@ -251,25 +298,25 @@ function drawPipes(arr){
   for(var i = 0; i < arr.length; i++){
 
     var xPipe = arr[i][0] + x;
-    var pipeHeight = arr[i][1];
+    var yPipe = arr[i][1];
 
     ctx.strokeStyle = 'black';  
 
     ctx.fillStyle = pipeColor;
-    ctx.fillRect(xPipe, canvas.height - ground - pipeHeight + 2, 60, pipeHeight);
-    ctx.strokeRect(xPipe, canvas.height - ground - pipeHeight + 2, 60, pipeHeight);
+    ctx.fillRect(xPipe, yPipe + 32, 60, canvas.height - ground);
+    ctx.strokeRect(xPipe, yPipe + 32, 60, canvas.height - ground);
     ctx.fillStyle = pipeShadow;
-    ctx.fillRect(xPipe + 30, canvas.height - ground - pipeHeight + 3, 25, pipeHeight - 1);
-    ctx.fillRect(xPipe + 5, canvas.height - ground - pipeHeight + 3, 2, pipeHeight - 1);
-    ctx.fillRect(xPipe + 10, canvas.height - ground - pipeHeight + 3, 4, pipeHeight - 1);
+    ctx.fillRect(xPipe + 30, yPipe + 32 + 1, 25, canvas.height - ground);
+    ctx.fillRect(xPipe + 5, yPipe + 32 + 1, 2, canvas.height - ground);
+    ctx.fillRect(xPipe + 10, yPipe + 32 + 1, 3, canvas.height - ground);
 
     ctx.fillStyle = pipeColor;
-    ctx.fillRect(xPipe - 5, canvas.height - ground - pipeHeight - 30, 70, 30);
-    ctx.strokeRect(xPipe - 5, canvas.height - ground - pipeHeight - 30, 70, 30);
+    ctx.fillRect(xPipe - 5, yPipe, 70, 30);
+    ctx.strokeRect(xPipe - 5, yPipe, 70, 30);
     ctx.fillStyle = pipeShadow;
-    ctx.fillRect(xPipe + 30, canvas.height - ground - pipeHeight - 30 + 1, 30, 28);
-    ctx.fillRect(xPipe, canvas.height - ground - pipeHeight - 30 + 1, 2, 28);
-    ctx.fillRect(xPipe + 5, canvas.height - ground - pipeHeight - 30 + 1, 3, 28);
+    ctx.fillRect(xPipe + 30, yPipe + 1, 30, 28);
+    ctx.fillRect(xPipe, yPipe + 1, 2, 28);
+    ctx.fillRect(xPipe + 5, yPipe + 1, 3, 28);
   }
 
 }
@@ -398,6 +445,13 @@ function draw() {
   
   movingRight = false;
   movingLeft = false;
+  
+  if(detectCollision(pipes, 60, 600) || detectCollision(platforms, 200, 40)){
+     reactOnCollision(true);
+   }else{
+     reactOnCollision(false);
+   }
+  
   requestAnimationFrame(draw);
 }
 
