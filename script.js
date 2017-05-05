@@ -10,6 +10,8 @@ function runGame(){
     
   var tick = 0;
 
+  var hit = false;
+
   //y coordanate coefficient
   //needed for possibility to change canvas height without touching arrays
   var hCoeff = canvas.height - 400;
@@ -28,7 +30,7 @@ function runGame(){
   //ground height
   var ground = 50;
   //how far the ground goes to the right
-  var groundLength = 3000;
+  var groundLength = 4000;
 
   var grassHeight = 5,
       grassWidth = 7;
@@ -205,28 +207,49 @@ function runGame(){
     }
   }
 
+  var dragonHides = true;
+  var dragonDefeated = false;
+  var opacity = 1;
+  var oShift = -0.1;
   //CASTLE
-  //for platform width 200, platform height 40
   function drawCastle(x) {
-    var heightBase = 5,
-        heightTower = 3;
-    for (var i = 0; i < heightBase; i++) {
-      drawWall(x, canvas.height - ground - 40 - 40 * i);
-      drawWall(x + 200, canvas.height - ground - 40 - 40 * i);
+    var baseWidth = 40 * 5;
+    var baseHeight = 10 * 15;
+    var towerWidth = 40 * 3;
+    var towerHeight = 10 * 5;
+
+    drawWall(x, canvas.height - ground - baseHeight, baseWidth, baseHeight);
+    drawWall(x + 40, canvas.height - ground - baseHeight - towerHeight, towerWidth, towerHeight);
+
+    var start = x + 40;
+    var h = canvas.height - ground;
+    ctx.beginPath();
+    ctx.moveTo(start, h);
+    ctx.bezierCurveTo(start, h - baseHeight, start + 40 * 3, h - baseHeight, start + 40 * 3, h);  
+    ctx.fillStyle = 'black';
+    ctx.fill();
+
+    var eyes = 'rgb(255, 0, 0, '+ opacity + ')'
+    if(dragonHides){      
+      ctx.beginPath();
+      ctx.arc(x+baseWidth/2 - 15, h - baseHeight/2 + 15, 3, 0, 2 * Math.PI);
+      ctx.fillStyle = eyes;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x+baseWidth/2 + 15, h - baseHeight/2 + 15, 3, 0, 2 * Math.PI);
+      ctx.fillStyle = eyes;
+      ctx.fill();
     }
-    for (var j = 0; j < heightTower; j++) {
-      drawWall(x + 100, canvas.height - ground - 40 - 40 * heightBase - 40 * j);
+
+    if(tick % 5 == 0){
+      opacity += oShift;
     }
-    ctx.fillStyle = '#ff4000';
-    ctx.strokeStyle='black';
-    for (var k =0; k < 10; k++) {
-      ctx.fillRect(x + k * 41, canvas.height - ground - 40 * heightBase - 30, 30, 30);
-      ctx.strokeRect(x + k * 41, canvas.height - ground - 40 * heightBase - 30, 30, 30);
+    if(opacity >= 1){
+      oShift = -0.1;
+    }else if(opacity <= 0){
+      oShift = 0.1;
     }
-    for (var l =0; l < 5; l++) {
-      ctx.fillRect(x + 100 + l * 42, canvas.height - ground - 40 * heightBase - 40 * heightTower - 30, 30, 30);
-      ctx.strokeRect(x + 100 + l * 42, canvas.height - ground - 40 * heightBase - 40 * heightTower - 30, 30, 30);
-    }  
+
   }
 
   //COLLISION DETECTION
@@ -413,7 +436,14 @@ function runGame(){
   }
 
   function drawMario() {
+    ctx.save();
+    if(hit){
+      ctx.shadowBlur=20;
+      ctx.shadowColor="red";
+    }
+    
     ctx.drawImage(img, src_x, src_y, src_w, src_h, x, y, marioSize, marioSize);
+    ctx.restore();
   }
 
   function drawGoomba(arr) {
@@ -536,6 +566,7 @@ function runGame(){
       }else if(this.detectCollisionX([[x,y, marioSize, marioSize]])){
         this.velocityX *= -1;
         lives--;
+        hit = true;
         if(x < this.x){
           x -= 5;
           xCam -= 5;
@@ -604,11 +635,15 @@ function runGame(){
 
   function draw() {
     tick++;
+    if(hit && tick % 50 == 0){
+      hit = false;
+    }
     //setTimeout(function() {
     ctx.clearRect(-1000, 0, groundLength + 2000, canvas.height);
     ctx.save();
     ctx.translate(-xCam, 0);
     drawBackground();
+    drawCastle(groundLength - 700);
     //drawGoomba(goombas);
     drawCoin(coins);
     drawScore(xCam + 5);
@@ -639,6 +674,7 @@ function runGame(){
 
     if(detectCollisionX(munchers)){
       lives--;
+      hit = true;
     }
     
     if (y < canvas.height - marioSize - ground && !detectCollisionY(pipes)) {
