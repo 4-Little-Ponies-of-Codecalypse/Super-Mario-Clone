@@ -1,4 +1,6 @@
-document.onReady(runGame());
+document.addEventListener('DOMContentLoaded', function () {
+    runGame();
+});
 
 function runGame(){
 
@@ -336,6 +338,7 @@ function runGame(){
 
   document.addEventListener('keydown', keyHandler, false);
   document.addEventListener('keyup', upHandler, false);
+  document.addEventListener('keypress', pressHandler, false);
 
   function upHandler(k) { 
     switch(k.keyCode) {
@@ -382,7 +385,25 @@ function runGame(){
         facingLeft = false;
         idle = false;
         break;
-                      }
+      }
+  }
+
+  function pressHandler(k){
+    if(k.keyCode == 40 || k.keyCode == 83){
+      crawl();
+    }
+  }
+
+  function crawl(){
+    if(x > pipes[0][0] - marioSize / 2 && x < pipes[0][0] + 60 - marioSize / 2){
+      x += pipes[pipes.length - 1][0] - pipes[0][0];
+      xCam += pipes[pipes.length - 1][0] - pipes[0][0];
+      y = pipes[pipes.length - 1][1] - marioSize;
+    }else if(x > pipes[pipes.length - 1][0] - marioSize / 2 && x < pipes[pipes.length - 1][0] + 60 - marioSize / 2){
+      x -= pipes[pipes.length - 1][0] - pipes[0][0];
+      xCam -= pipes[pipes.length - 1][0] - pipes[0][0];
+      y = pipes[0][1] - marioSize;
+    }
   }
 
   function drawFlippedMario() {
@@ -465,7 +486,7 @@ function runGame(){
   var GoombaObj = function(coord) {
     this.x = coord[0];
     this.y = coord[1];
-    this.velocityX = 2;
+    this.velocityX = 1.5;
     this.detectCollisionX = function(obs) {
       let xObs,
           yObs,
@@ -492,7 +513,7 @@ function runGame(){
         yObs = obs[i][1],
         widthObs = obs[i][2],
         heightObs = obs[i][3];
-        if (this.x > xObs - 5 && this.x < xObs + widthObs - goombaSize + 5 && this.y + goombaSize >= yObs && this.y <= yObs + heightObs) {        
+        if (this.x > xObs - 15 && this.x < xObs + widthObs - goombaSize + 15 && this.y + goombaSize >= yObs && this.y <= yObs + heightObs) {        
           return xObs;
         }
       }
@@ -535,7 +556,7 @@ function runGame(){
       
       if (goo_x == 144) {
         goo_x = 0;
-      } else {
+      } else if(tick % 10 == 0) {
         goo_x += 16;
       }
     };
@@ -615,6 +636,10 @@ function runGame(){
         }
       }
     }
+
+    if(detectCollisionX(munchers)){
+      lives--;
+    }
     
     if (y < canvas.height - marioSize - ground && !detectCollisionY(pipes)) {
       jumps = true;
@@ -660,30 +685,30 @@ function runGame(){
     
     if (movingRight) {
       x += dx;
-      xCam += dx;
-      if (detectCollisionX(pipes) || detectCollisionX(platforms)) {
+      xCam += dx;      
+      if (detectCollisionX(pipes) || detectCollisionX(platforms) || x > groundLength - marioSize + 20) {
         x -= dx;
         xCam -= dx;
       }
       if (src_x == 107) {
         src_x = 2;
-      } else {
+      } else if(tick % 3 == 0){
         src_x += 35;
-      }
+      }      
     }
     
     if (movingLeft) {
       x -= dx;    
       xCam -= dx;
-      if (detectCollisionX(pipes) || detectCollisionX(platforms)) {
+      if (detectCollisionX(pipes) || detectCollisionX(platforms) || x < -15) {
         x += dx;
         xCam += dx;
       }
-      if (src_x == 2) {
-        src_x = 107;
-      } else {
-        src_x -= 35;
-      } 
+      if (src_x == 107) {
+        src_x = 2;
+      } else if(tick % 3 == 0){
+        src_x += 35;
+      }
     }
     
     if (idle) {
