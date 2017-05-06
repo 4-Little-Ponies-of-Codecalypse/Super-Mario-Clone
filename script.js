@@ -30,7 +30,7 @@ function runGame(){
   //ground height
   var ground = 50;
   //how far the ground goes to the right
-  var groundLength = 4000;
+  var groundLength = 6000;
 
   var grassHeight = 5,
       grassWidth = 7;
