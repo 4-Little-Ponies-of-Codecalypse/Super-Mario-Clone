@@ -17,7 +17,9 @@ function runGame(){
   var hCoeff = canvas.height - 400;
 
   //arrays with x and y coordinates
-  var platforms = [[100, 220 + hCoeff, 200, 40], [1000, 100 + hCoeff, 120, 40], [1300, 100, 40, 160], [1340, 100, 160, 40], [1300, 220 + hCoeff, 200, 40], [1830, 110 + hCoeff, 200, 40], [1880, 220, 100, 40], [2180, 160, 40, 40], [2380, 220, 40, 40], [2500, 100, 40, 40]],
+  var platforms = [[100, 220 + hCoeff, 200, 40], [1000, 100 + hCoeff, 120, 40], [1300, 100, 40, 160], [1340, 100, 160, 40], [1300, 220 + hCoeff, 200, 40], [1830, 110 + hCoeff, 200, 40], [1880, 220, 100, 40], [2180, 160, 40, 40], [2380, 220, 40, 40], [2500, 100, 40, 40], [3420, 250, 160, 40]],
+      movingPlatforms = [[2840, 160, 40, 40], [3020, 110, 40, 40]],
+      platformObj = [],
       pipes = [[600, 250 + hCoeff, 60, 1000], [800, 200 + hCoeff, 60, 1000], [900, 280 + hCoeff, 60, 1000], [1630, 170, 60, 1000], [2700, 250 + hCoeff, 60, 1000]],
       clouds = [[100, 40], [300, 70], [330, 70], [700, 40], [850,85], [1200, 40], [1400, 70], [1430, 70], [1900, 50]];
   //array with x coord, size and berries color (false if no berries)
@@ -142,6 +144,7 @@ function runGame(){
     drawGrass();  
     drawClouds(clouds);
     drawPlatforms(platforms);  
+    drawPlatforms(movingPlatforms);
   } //end of draw background
 
   //PLATFORMS AND PIPES
@@ -272,7 +275,6 @@ function runGame(){
       widthObs = arr[i][2];
       heightObs = arr[i][3];
       if(x > xObs - marioSize + 15 && x < xObs + widthObs - 15 && y + marioSize > yObs && y + 18 < yObs + heightObs){
-      // console.log('x:', x, 'xObs', xObs);
         return xObs;
       }
     }
@@ -316,9 +318,9 @@ function runGame(){
       src_w = 32,
       src_h = 46,
       goo_x = 0,
-      goo_y = 0,//15,
+      goo_y = 0,
       goo_w = 16,
-      goo_h = 16,//17,
+      goo_h = 16,
       coin_x = 2,
       coin_y = 97,
       coin_w = 11,
@@ -338,14 +340,14 @@ function runGame(){
       onGround = false,
       jumps = false,
       onPlatform = false,
-	  dead = false,
+      dead = false,
       immune = false,
       idle = true;
-  var goombas = [[100, 220 - goombaSize], [10, 315], [700, 315], [1000, 315], [1040, 65], [1700, 315]],
+  var goombas = [[100, 220 - goombaSize], [10, 315], [700, 315], [1000, 315], [1040, 65], [1700, 315], [3420, 250 - goombaSize]],
       goombasObj = [],
       munchers = [[2240, 317, muncherSize, muncherSize], [2440, 317, muncherSize, muncherSize], [2520, 317, muncherSize, muncherSize]],
-      coins = [[120, 185, coinSize, coinSize], [180, 185, coinSize, coinSize], [240, 185, coinSize, coinSize], [670, 200, coinSize, coinSize], [720, 175, coinSize, coinSize], [765, 150, coinSize, coinSize], [1345, 185, coinSize, coinSize], [1375, 185, coinSize, coinSize], [1405, 185, coinSize, coinSize], [1435, 185, coinSize, coinSize], [1465, 185, coinSize, coinSize], [1940, 185, coinSize, coinSize], [1890, 185, coinSize, coinSize], [2505, 65, coinSize, coinSize]],
-	  water = [[2810, canvas.height - ground + 10, 3610, canvas.height - ground + 10]];
+      coins = [[10, 315, coinSize, coinSize], [120, 185, coinSize, coinSize], [180, 185, coinSize, coinSize], [240, 185, coinSize, coinSize], [670, 200, coinSize, coinSize], [720, 175, coinSize, coinSize], [765, 150, coinSize, coinSize], [1020, 65, coinSize, coinSize], [1065, 65, coinSize, coinSize], [1345, 185, coinSize, coinSize], [1375, 185, coinSize, coinSize], [1405, 185, coinSize, coinSize], [1435, 185, coinSize, coinSize], [1465, 185, coinSize, coinSize], [1345, 65, coinSize, coinSize], [1375, 65, coinSize, coinSize], [1405, 65, coinSize, coinSize], [1435, 65, coinSize, coinSize], [1465, 65, coinSize, coinSize], [1940, 185, coinSize, coinSize], [1890, 185, coinSize, coinSize], [2295, 315, coinSize, coinSize], [2340, 315, coinSize, coinSize], [2385, 315, coinSize, coinSize], [2505, 65, coinSize, coinSize], [2495, 315, coinSize, coinSize]],
+      water = [[2810, canvas.height - ground + 10, 3610, canvas.height - ground + 10]];
 
   document.addEventListener('keydown', keyHandler, false);
   document.addEventListener('keyup', upHandler, false);
@@ -489,6 +491,30 @@ function runGame(){
     }
   }
 
+  var MovingPlatform = function(coord) {
+    this.x = coord[0];
+    this.start = coord[0];
+    this.velocityX = 2;
+    this.movePlatform = function() {
+      this.x += this.velocityX;
+      if (this.x > this.start + 300) {
+        this.velocityX *= -1;
+      }
+      if (this.x < this.start) {
+        this.velocityX *= -1;
+      }
+      if (onPlatform) {
+        x += this.velocityX / 2;
+        xCam += this.velocityX / 2;
+      }
+      coord[0] = this.x;
+    }
+  }
+
+  for (let i = 0; i < movingPlatforms.length; i++) {
+    platformObj.push(new MovingPlatform(movingPlatforms[i]));
+  }
+  
   var GoombaObj = function(coord) {
     this.x = coord[0];
     this.y = coord[1];
@@ -583,12 +609,14 @@ function runGame(){
         velocityX *= -1;
       }
     }
-	if (detectCollisionY(water)) { // hits water
+    if (detectCollisionY(water)) { // hits water
       velocityY = 0.0;
+      y = canvas.height - ground - marioSize + 10;
       onGround = true;
+      onPlatform = false;
       jumps = false;
       damage();
-	} else if (y > canvas.height - marioSize - ground) { //check if Mario hits the ground
+    } else if (y > canvas.height - marioSize - ground) { //check if Mario hits the ground
       y = canvas.height - marioSize - ground;
       velocityY = 0.0;
       onGround = true;
@@ -597,7 +625,7 @@ function runGame(){
     } else if (detectCollisionY(pipes)) { // hits pipes
       velocityY = 0.0;
       onGround = true;
-      onPlatform = true;
+      onPlatform = false;
       jumps = false;
       y = detectCollisionY(pipes) - marioSize;
     } else if (detectCollisionY(platforms)) { // hits platforms
@@ -607,9 +635,19 @@ function runGame(){
         velocityY = 0.0;
         y = detectCollisionY(platforms) - marioSize;
         onGround = true;
-        onPlatform = true;
+        onPlatform = false;
         jumps = false;
       }    
+    } else if (detectCollisionY(movingPlatforms)) {
+      if (y > detectCollisionY(movingPlatforms) + 10) {
+        velocityY *= -1;
+      } else {
+        velocityY = 0.0;
+        y = detectCollisionY(movingPlatforms) - marioSize;
+        onGround = true;
+        onPlatform = true;
+        jumps = false;
+      }
     }
   }
 
@@ -618,7 +656,7 @@ function runGame(){
     if (dead) {
       return;
     }
-	tick++;
+    tick++;
     if(hit && tick % 50 == 0){
       hit = false;
     }
@@ -642,6 +680,10 @@ function runGame(){
       goombasObj[i].moveGoombaObj();
     }
     
+    for (let i = 0; i < platformObj.length; i++) {
+      platformObj[i].movePlatform();
+    }
+
     if (detectCollisionX(coins)) {
       for (let i = 0; i < coins.length;) {
         if (coins[i][0] == detectCollisionX(coins)) {
@@ -656,12 +698,11 @@ function runGame(){
     if(detectCollisionX(munchers)){
       damage();
     }
-	
-	for (let i = 0; i < water.length; i++) {
+
+    for (let i = 0; i < water.length; i++) {
       let xObs = water[i][0],
           xWidth = water[i][2];
-    // for now, need to add platforms and change the condition:
-      if (x > xObs && x < xWidth && !jumps) {
+      if (x > xObs && x < xWidth && y >= canvas.height - ground - marioSize) {
         y = canvas.height - ground - marioSize + 10;
         damage();
       }
@@ -680,7 +721,7 @@ function runGame(){
     if (movingRight) {
       x += dx;
       xCam += dx;      
-      if (detectCollisionX(pipes) || detectCollisionX(platforms) || x > groundLength - marioSize + 20) {
+      if (detectCollisionX(pipes) || detectCollisionX(platforms) || detectCollisionX(movingPlatforms) || x > groundLength - marioSize + 20) {
         x -= dx;
         xCam -= dx;
       }
@@ -694,7 +735,7 @@ function runGame(){
     if (movingLeft) {
       x -= dx;    
       xCam -= dx;
-      if (detectCollisionX(pipes) || detectCollisionX(platforms) || x < -15) {
+      if (detectCollisionX(pipes) || detectCollisionX(platforms) || detectCollisionX(movingPlatforms) || x < -15) {
         x += dx;
         xCam += dx;
       }
