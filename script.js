@@ -110,16 +110,23 @@ function runGame(){
     ctx.fillStyle = sea;
     ctx.fillRect(-1000, canvas.height - ground + 10, 1000, ground);
     ctx.fillStyle = grd;
-    ctx.fillRect(0, canvas.height - ground, groundLength, ground);
+    ctx.fillRect(0, canvas.height - ground, 2810, ground);
     ctx.fillStyle = sea;
-    ctx.fillRect(groundLength, canvas.height - ground + 10, 1000, ground);
+    ctx.fillRect(2810, canvas.height - ground + 10, 3610, ground);
+    ctx.fillStyle = grd;
+    ctx.fillRect(3610, canvas.height - ground, groundLength, ground);
   } //end of draw ground
 
   function drawGrass() {
     ctx.fillStyle = 'green';
     ctx.beginPath();
     ctx.moveTo(0, canvas.height - ground);
-    for (var i = 0; i < groundLength; i += grassWidth){
+    for (var i = 0; i < 2803; i += grassWidth){
+      ctx.lineTo(grassWidth / 2 + i, canvas.height - ground - grassHeight);
+      ctx.lineTo(grassWidth + i, canvas.height - ground + 1);    
+    }
+    ctx.moveTo(3610, canvas.height - ground);
+    for (var i = 3610; i < groundLength; i += grassWidth){
       ctx.lineTo(grassWidth / 2 + i, canvas.height - ground - grassHeight);
       ctx.lineTo(grassWidth + i, canvas.height - ground + 1);    
     }
@@ -272,26 +279,6 @@ function runGame(){
     return false;
   }
 
-  function detectGoombaX(obs, widthObs, heightObs) {
-    let xObs,
-        yObs,
-        xGoomba,
-        yGoomba;
-    
-    for (let i = 0; i < obs.length; i++) {
-      for (let j = 0; j < goombas.length; j++) {
-        xObs = obs[i][0];
-        yObs = obs[i][1];
-        xGoomba = goombas[j][0];
-        yGoomba = goombas[j][1];
-        if (xGoomba > xObs - goombaSize - 5 && xGoomba < xObs + widthObs && yGoomba + goombaSize > yObs && yGoomba < yObs + heightObs) {
-          return xObs;
-        }
-      }
-    }
-    return false;
-  }
-
   function detectCollisionY(arr) {
     var xObs,
         yObs,
@@ -321,9 +308,7 @@ function runGame(){
       coinSize = 25,
       muncherSize = 35,
       x = canvas.width / 2 - marioSize / 2,
-      y = canvas.height - ground - marioSize, // 300
-      //xGoomba = 520,
-      //yGoomba = canvas.height - ground - goombaSize,
+      y = canvas.height - ground - marioSize,
       dx = 4,
       dy = -4,
       src_x = 2,
@@ -353,11 +338,14 @@ function runGame(){
       onGround = false,
       jumps = false,
       onPlatform = false,
+	  dead = false,
+      immune = false,
       idle = true;
-  var goombas = [[100, 220-goombaSize],[10, 315], [700, 315], [1000, 315], [1040, 65]],
+  var goombas = [[100, 220 - goombaSize], [10, 315], [700, 315], [1000, 315], [1040, 65], [1700, 315]],
       goombasObj = [],
       munchers = [[2240, 317, muncherSize, muncherSize], [2440, 317, muncherSize, muncherSize], [2520, 317, muncherSize, muncherSize]],
-      coins = [[120, 185, coinSize, coinSize], [180, 185, coinSize, coinSize], [240, 185, coinSize, coinSize], [670, 200, coinSize, coinSize], [720, 175, coinSize, coinSize], [765, 150, coinSize, coinSize], [1345, 185, coinSize, coinSize], [1375, 185, coinSize, coinSize], [1405, 185, coinSize, coinSize], [1435, 185, coinSize, coinSize], [1465, 185, coinSize, coinSize], [1940, 185, coinSize, coinSize], [1890, 185, coinSize, coinSize], [2505, 65, coinSize, coinSize]];
+      coins = [[120, 185, coinSize, coinSize], [180, 185, coinSize, coinSize], [240, 185, coinSize, coinSize], [670, 200, coinSize, coinSize], [720, 175, coinSize, coinSize], [765, 150, coinSize, coinSize], [1345, 185, coinSize, coinSize], [1375, 185, coinSize, coinSize], [1405, 185, coinSize, coinSize], [1435, 185, coinSize, coinSize], [1465, 185, coinSize, coinSize], [1940, 185, coinSize, coinSize], [1890, 185, coinSize, coinSize], [2505, 65, coinSize, coinSize]],
+	  water = [[2810, canvas.height - ground + 10, 3610, canvas.height - ground + 10]];
 
   document.addEventListener('keydown', keyHandler, false);
   document.addEventListener('keyup', upHandler, false);
@@ -428,6 +416,21 @@ function runGame(){
       y = pipes[0][1] - marioSize;
     }
   }
+  
+  function damage() {
+    if (lives == 1 && !immune) {
+      lives = 0;
+      dead = true;
+      ctx.font = '48px Audiowide';
+      ctx.fillStyle = '#fff';
+      ctx.fillText('GAME OVER', 252 + xCam, 200);
+    } else if (!immune) {
+      lives--;
+      hit = true;
+      immune = true;
+      window.setTimeout(() => {immune = false;}, 2000);
+    }
+  }
 
   function drawFlippedMario() {
     ctx.scale(-1, 1);
@@ -438,20 +441,12 @@ function runGame(){
   function drawMario() {
     ctx.save();
     if(hit){
-      ctx.shadowBlur=20;
-      ctx.shadowColor="red";
+      ctx.shadowBlur = 60;
+      ctx.shadowColor = "#E32000";
     }
     
     ctx.drawImage(img, src_x, src_y, src_w, src_h, x, y, marioSize, marioSize);
     ctx.restore();
-  }
-
-  function drawGoomba(arr) {
-    for (let i = 0; i < arr.length; i++) {
-      var xGoomba = arr[i][0],
-          yGoomba = arr[i][1];
-      ctx.drawImage(goomba, goo_x, goo_y, goo_w, goo_h, xGoomba, yGoomba, goombaSize, goombaSize);
-    }
   }
 
   function drawCoin(arr) {
@@ -463,10 +458,10 @@ function runGame(){
   }
 
   function animateCoin() {
-    if (coin_x == 47) {
+    if (coin_x == 50 && tick % 20 == 0) {
       coin_x = 2;
-    } else {
-      coin_x += 15;
+    } else if (tick % 20 == 0) {
+      coin_x += 16;
     }
   }
 
@@ -486,30 +481,11 @@ function runGame(){
           yMun = arr[i][1];
       ctx.drawImage(muncher, mun_x, mun_y, mun_w, mun_h, xMun, yMun, muncherSize, muncherSize);
     }
-      if (tick % 20 == 0) {
+    if (tick % 20 == 0) {
       mun_x += 16;
-          } 
+    } 
     if (mun_x == 192 + 16 * 2){
-              mun_x = 192;
-        }
-    
-  }
-
-  // very funny bug. if Mario is above ground, goomba stops and resumes only when Mario gets down to ground. and resumes towards Mario to attack!
-  // this bug will be evident if another bug is fixed: individual collision for each goomba
-  function moveGoomba() {
-    for (let i = 0; i < goombas.length; i++) {
-      var old = goombas[i][0];
-      goombas[i][0] -= velocityX;    
-      if (detectGoombaX(pipes, 60, 1000)) {// || detectGoombaX([[x, y]], marioSize - 15, marioSize)) {
-        goombas[i][0] = old;
-        velocityX *= -1;
-      }
-    }
-    if (goo_x == 144) {
-      goo_x = 0;
-    } else {
-      goo_x += 16;
+      mun_x = 192;
     }
   }
 
@@ -565,8 +541,7 @@ function runGame(){
         goombasObj.splice(goombasObj.indexOf(this), 1);
       }else if(this.detectCollisionX([[x,y, marioSize, marioSize]])){
         this.velocityX *= -1;
-        lives--;
-        hit = true;
+        damage();
         if(x < this.x){
           x -= 5;
           xCam -= 5;
@@ -608,12 +583,17 @@ function runGame(){
         velocityX *= -1;
       }
     }
-    if (y > canvas.height - marioSize - ground) { //check if Mario hits the ground
-    y = canvas.height - marioSize - ground;
-    velocityY = 0.0;
-    onGround = true;
-    onPlatform = false;
-    jumps = false;
+	if (detectCollisionY(water)) { // hits water
+      velocityY = 0.0;
+      onGround = true;
+      jumps = false;
+      damage();
+	} else if (y > canvas.height - marioSize - ground) { //check if Mario hits the ground
+      y = canvas.height - marioSize - ground;
+      velocityY = 0.0;
+      onGround = true;
+      onPlatform = false;
+      jumps = false;
     } else if (detectCollisionY(pipes)) { // hits pipes
       velocityY = 0.0;
       onGround = true;
@@ -633,23 +613,24 @@ function runGame(){
     }
   }
 
+// MAIN DRAW FUNC
   function draw() {
-    tick++;
+    if (dead) {
+      return;
+    }
+	tick++;
     if(hit && tick % 50 == 0){
       hit = false;
     }
-    //setTimeout(function() {
     ctx.clearRect(-1000, 0, groundLength + 2000, canvas.height);
     ctx.save();
     ctx.translate(-xCam, 0);
     drawBackground();
-    drawCastle(groundLength - 700);
-    //drawGoomba(goombas);
+    drawCastle(3850);
     drawCoin(coins);
     drawScore(xCam + 5);
     drawMuncher(munchers);
-    //moveGoomba();
-    //animateCoin();
+    animateCoin();
     if (facingLeft) {
       drawFlippedMario();
     } else {
@@ -673,9 +654,18 @@ function runGame(){
     }
 
     if(detectCollisionX(munchers)){
-      lives--;
-      hit = true;
+      damage();
     }
+	
+	for (let i = 0; i < water.length; i++) {
+      let xObs = water[i][0],
+          xWidth = water[i][2];
+    // for now, need to add platforms and change the condition:
+      if (x > xObs && x < xWidth && !jumps) {
+        y = canvas.height - ground - marioSize + 10;
+        damage();
+      }
+  }
     
     if (y < canvas.height - marioSize - ground && !detectCollisionY(pipes)) {
       jumps = true;
@@ -686,38 +676,6 @@ function runGame(){
     if (jumps) {
       jumpMario();
     }
-    
-    // !!! think
-  /*  if (onPlatform) {
-      if (!staysOnPlatform(pipes, 60, 1000)) {
-        y += 8;
-        
-        if (y > canvas.height - marioSize - ground) { 
-          y = canvas.height - marioSize - ground;
-          velocityY = 0.0;
-          onGround = true;
-          onPlatform = false;
-          jumps = false;
-          
-          if (facingLeft) {
-            if (detectCollisionX(pipes, 60, 1000)) {
-              x += dx;
-              xCam += dx;
-            }
-            x -= dx * 5;
-            xCam -= dx * 5;
-          } else {
-            if (detectCollisionX(pipes, 60, 1000)) {
-              x -= dx;
-              xCam -= dx;
-            }
-            x += dx * 5;
-            xCam += dx * 5;
-          }
-          
-        }
-      }
-    }*/
     
     if (movingRight) {
       x += dx;
@@ -753,7 +711,6 @@ function runGame(){
     
     ctx.restore();
     requestAnimationFrame(draw);
-    //}, 1000 / fps);
   }
 
   draw();
