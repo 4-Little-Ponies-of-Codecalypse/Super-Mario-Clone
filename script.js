@@ -2,25 +2,40 @@ document.addEventListener('DOMContentLoaded', function () {
     runGame();
 });
 
+var timer;
+window.addEventListener('resize', function(event){
+  if(timer) {
+		window.clearTimeout(timer);
+	}
+	timer = window.setTimeout(function() {
+		runGame();
+	}, 200);  
+});
+
 function runGame(){
 
   const canvas = document.getElementById('mario'),
         ctx = canvas.getContext('2d');
+
+
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+    
+  var hCoeff = canvas.height - 400;
+  var wCoeff = canvas.width - 800;
+
   var xCam = 0;
     
   var tick = 0;
 
   var hit = false;
 
-  //y coordanate coefficient
-  //needed for possibility to change canvas height without touching arrays
-  var hCoeff = canvas.height - 400;
 
   //arrays with x and y coordinates
-  var platforms = [[100, 220 + hCoeff, 200, 40], [1000, 100 + hCoeff, 120, 40], [1300, 100, 40, 160], [1340, 100, 160, 40], [1300, 220 + hCoeff, 200, 40], [1830, 110 + hCoeff, 200, 40], [1880, 220, 100, 40], [2180, 160, 40, 40], [2380, 220, 40, 40], [2500, 100, 40, 40], [3420, 250, 160, 40]],
+  var platforms = [[100, 220, 200, 40], [1000, 100, 120, 40], [1300, 100, 40, 160], [1340, 100, 160, 40], [1300, 220, 200, 40], [1830, 110, 200, 40], [1880, 220, 100, 40], [2180, 160, 40, 40], [2380, 220, 40, 40], [2500, 100, 40, 40]],
       movingPlatforms = [[2840, 160, 40, 40], [3020, 110, 40, 40]],
       platformObj = [],
-      pipes = [[600, 250 + hCoeff, 60, 1000], [800, 200 + hCoeff, 60, 1000], [900, 280 + hCoeff, 60, 1000], [1630, 170, 60, 1000], [2700, 250 + hCoeff, 60, 1000]],
+      pipes = [[600, 250, 60, 1000], [800, 200, 60, 1000], [900, 280, 60, 1000], [1630, 170, 60, 1000], [2700, 250, 60, 1000]],
       clouds = [[100, 40], [300, 70], [330, 70], [700, 40], [850,85], [1200, 40], [1400, 70], [1430, 70], [1900, 50]];
   //array with x coord, size and berries color (false if no berries)
   var shrubs = [[40, 1/2, false], [100, 1/2.5, false], [485, 1/2.5, '#ff0055'], [690, 1/2.5, 'yellow'], [1100, 1/1.8, false], [1710, 1/2.5, '#ff0055']];
@@ -32,7 +47,7 @@ function runGame(){
   //ground height
   var ground = 50;
   //how far the ground goes to the right
-  var groundLength = 6000;
+  var groundLength = 6000 + wCoeff;
 
   var grassHeight = 5,
       grassWidth = 7;
@@ -67,7 +82,7 @@ function runGame(){
     //d - berries distrubution
     var d = [15, -15, 35, 3, -15, 25, -5, -35, 40, 10, -10, 30, 0];
     for (var i = 0; i < arr.length; i++) {
-      start = arr[i][0];
+      start = arr[i][0] + wCoeff;
       size = arr[i][1];
       berries = arr[i][2];
 
@@ -94,7 +109,7 @@ function runGame(){
   function drawHills(arr) {
     var start, size;
     for (var i = 0; i < arr.length; i++) {
-      start = arr[i][0];
+      start = arr[i][0] + wCoeff;
       size = arr[i][1]
       var h = canvas.height - ground;
       ctx.beginPath();
@@ -112,23 +127,23 @@ function runGame(){
     ctx.fillStyle = sea;
     ctx.fillRect(-1000, canvas.height - ground + 10, 1000, ground);
     ctx.fillStyle = grd;
-    ctx.fillRect(0, canvas.height - ground, 2810, ground);
+    ctx.fillRect(0, canvas.height - ground, 2810 + wCoeff, ground);
     ctx.fillStyle = sea;
-    ctx.fillRect(2810, canvas.height - ground + 10, 3610, ground);
+    ctx.fillRect(2810 + wCoeff, canvas.height - ground + 10, 3610 + wCoeff, ground);
     ctx.fillStyle = grd;
-    ctx.fillRect(3610, canvas.height - ground, groundLength, ground);
+    ctx.fillRect(3610 + wCoeff, canvas.height - ground, groundLength, ground);
   } //end of draw ground
 
   function drawGrass() {
     ctx.fillStyle = 'green';
     ctx.beginPath();
     ctx.moveTo(0, canvas.height - ground);
-    for (var i = 0; i < 2803; i += grassWidth){
+    for (var i = 0; i < 2803 + wCoeff; i += grassWidth){
       ctx.lineTo(grassWidth / 2 + i, canvas.height - ground - grassHeight);
       ctx.lineTo(grassWidth + i, canvas.height - ground + 1);    
     }
-    ctx.moveTo(3610, canvas.height - ground);
-    for (var i = 3610; i < groundLength; i += grassWidth){
+    ctx.moveTo(3610 + wCoeff, canvas.height - ground);
+    for (var i = 3610 + wCoeff; i < groundLength; i += grassWidth){
       ctx.lineTo(grassWidth / 2 + i, canvas.height - ground - grassHeight);
       ctx.lineTo(grassWidth + i, canvas.height - ground + 1);    
     }
@@ -152,7 +167,7 @@ function runGame(){
   //arr - array with platforms coordinates
   function drawPlatforms(arr) {
     for (var a = 0; a < arr.length; a++) {
-      drawWall(arr[a][0], arr[a][1], arr[a][2], arr[a][3]); 
+      drawWall(arr[a][0] + wCoeff, arr[a][1] + hCoeff, arr[a][2], arr[a][3]); 
     } 
   }
 
@@ -197,8 +212,8 @@ function runGame(){
     grdT.addColorStop(0,"#006600");
     grdT.addColorStop(1,"#000099");
     for (var i = 0; i < arr.length; i++) {
-      var xPipe = arr[i][0],
-          yPipe = arr[i][1];
+      var xPipe = arr[i][0] + wCoeff,
+          yPipe = arr[i][1] + hCoeff;
       ctx.strokeStyle = 'black';  
       ctx.fillStyle = pipeColor;
       ctx.fillRect(xPipe, yPipe + 32, 60, canvas.height - ground);
@@ -227,6 +242,8 @@ function runGame(){
     var baseHeight = 10 * 15;
     var towerWidth = 40 * 3;
     var towerHeight = 10 * 5;
+
+    x += wCoeff;
 
     drawWall(x, canvas.height - ground - baseHeight, baseWidth, baseHeight);
     drawWall(x + 40, canvas.height - ground - baseHeight - towerHeight, towerWidth, towerHeight);
@@ -270,12 +287,32 @@ function runGame(){
         heightObs;
     
     for(var i = 0; i < arr.length; i++) {
-      xObs = arr[i][0];
-      yObs = arr[i][1];
+      xObs = arr[i][0] + wCoeff;
+      yObs = arr[i][1]  + hCoeff;
       widthObs = arr[i][2];
       heightObs = arr[i][3];
       if(x > xObs - marioSize + 15 && x < xObs + widthObs - 15 && y + marioSize > yObs && y + 18 < yObs + heightObs){
         return xObs;
+      }
+    }
+    return false;
+  }
+
+  function detectGoombaX(obs, widthObs, heightObs) {
+    let xObs,
+        yObs,
+        xGoomba,
+        yGoomba;
+    
+    for (let i = 0; i < obs.length; i++) {
+      for (let j = 0; j < goombas.length; j++) {
+        xObs = obs[i][0] + wCoeff;
+        yObs = obs[i][1] + hCoeff;
+        xGoomba = goombas[j][0] + wCoeff;
+        yGoomba = goombas[j][1] + hCoeff;
+        if (xGoomba > xObs - goombaSize - 5 && xGoomba < xObs + widthObs && yGoomba + goombaSize > yObs && yGoomba < yObs + heightObs) {
+          return xObs;
+        }
       }
     }
     return false;
@@ -288,8 +325,8 @@ function runGame(){
         heightObs;
     
     for(var i = 0; i < arr.length; i++) {
-      xObs = arr[i][0];
-      yObs = arr[i][1];
+      xObs = arr[i][0] + wCoeff;
+      yObs = arr[i][1] + hCoeff;
       widthObs = arr[i][2];
       heightObs = arr[i][3];
       if(x > xObs - marioSize + 15 && x < xObs + widthObs - 15 && y + marioSize > yObs && y + 18 < yObs + heightObs){
@@ -333,7 +370,7 @@ function runGame(){
       velocityX = 2,
       gravity = 0.5,
       gold = 0,
-      lives = 3,
+      lives = 20, //3
       movingLeft = false,
       movingRight = false,
       facingLeft = false,
@@ -453,8 +490,8 @@ function runGame(){
 
   function drawCoin(arr) {
     for (let i = 0; i < arr.length; i++) {
-      var xCoin = arr[i][0],
-          yCoin = arr[i][1];
+      var xCoin = arr[i][0] + wCoeff,
+          yCoin = arr[i][1] + hCoeff;
       ctx.drawImage(coin, coin_x, coin_y, coin_w, coin_h, xCoin, yCoin, coinSize, coinSize);
     }
   }
@@ -479,8 +516,8 @@ function runGame(){
 
   function drawMuncher(arr) {
     for (let i = 0; i < arr.length; i++) {
-      var xMun = arr[i][0],
-          yMun = arr[i][1];
+      var xMun = arr[i][0] + wCoeff,
+          yMun = arr[i][1] + hCoeff;
       ctx.drawImage(muncher, mun_x, mun_y, mun_w, mun_h, xMun, yMun, muncherSize, muncherSize);
     }
     if (tick % 20 == 0) {
@@ -516,8 +553,8 @@ function runGame(){
   }
   
   var GoombaObj = function(coord) {
-    this.x = coord[0];
-    this.y = coord[1];
+    this.x = coord[0] + wCoeff;
+    this.y = coord[1] + hCoeff;
     this.velocityX = 1.5;
     this.detectCollisionX = function(obs) {
       let xObs,
@@ -525,8 +562,8 @@ function runGame(){
           widthObs,
           heightObs;
       for (let i = 0; i < obs.length; i++) {
-        xObs = obs[i][0],
-        yObs = obs[i][1],
+        xObs = obs[i][0] + wCoeff,
+        yObs = obs[i][1] + hCoeff,
         widthObs = obs[i][2],
         heightObs = obs[i][3];
         if (this.x > xObs - goombaSize - 5 && this.x < xObs + widthObs && this.y + goombaSize > yObs && this.y < yObs + heightObs) {        
@@ -541,8 +578,8 @@ function runGame(){
           widthObs,
           heightObs;
       for (let i = 0; i < obs.length; i++) {
-        xObs = obs[i][0],
-        yObs = obs[i][1],
+        xObs = obs[i][0] + wCoeff,
+        yObs = obs[i][1] + hCoeff,
         widthObs = obs[i][2],
         heightObs = obs[i][3];
         if (this.x > xObs - 15 && this.x < xObs + widthObs - goombaSize + 15 && this.y + goombaSize >= yObs && this.y <= yObs + heightObs) {        
@@ -563,9 +600,9 @@ function runGame(){
         this.velocityX *= -1;
       }
       
-      if(this.detectCollisionY([[x,y, marioSize, marioSize]]) && y + marioSize < this.y + 15){
+      if(this.detectCollisionY([[x - wCoeff,y - hCoeff, marioSize, marioSize]]) && y + marioSize < this.y + 15){
         goombasObj.splice(goombasObj.indexOf(this), 1);
-      }else if(this.detectCollisionX([[x,y, marioSize, marioSize]])){
+      }else if(this.detectCollisionX([[x - wCoeff,y - hCoeff, marioSize, marioSize]])){
         this.velocityX *= -1;
         damage();
         if(x < this.x){
@@ -664,7 +701,7 @@ function runGame(){
     ctx.save();
     ctx.translate(-xCam, 0);
     drawBackground();
-    drawCastle(3850);
+    //drawCastle(3850);
     drawCoin(coins);
     drawScore(xCam + 5);
     drawMuncher(munchers);
@@ -686,7 +723,7 @@ function runGame(){
 
     if (detectCollisionX(coins)) {
       for (let i = 0; i < coins.length;) {
-        if (coins[i][0] == detectCollisionX(coins)) {
+        if (coins[i][0]  + wCoeff == detectCollisionX(coins)) {
           gold++;
           coins.splice(i, 1);
         } else {
